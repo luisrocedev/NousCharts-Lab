@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NousCharts Lab · Librería de gráficas</title>
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="panel header">
+      <div>
+        <h1>NousCharts Lab</h1>
+        <p>Librería personalizada de gráficas para paneles empresariales con datos persistidos en IndexedDB.</p>
+      </div>
+      <div class="actions">
+        <button id="addRowBtn">+ Añadir registro</button>
+        <button id="seedBtn" class="secondary">Cargar dataset demo</button>
+        <button id="resetBtn" class="secondary">Reset BD</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="row row-4">
+        <label>Año
+          <select id="yearFilter"></select>
+        </label>
+        <label>Región
+          <select id="regionFilter"></select>
+        </label>
+        <label>Métrica principal
+          <select id="metricSelect">
+            <option value="ventas">Ventas</option>
+            <option value="costes">Costes</option>
+            <option value="tickets">Tickets</option>
+            <option value="satisfaccion">Satisfacción</option>
+          </select>
+        </label>
+        <label>Búsqueda rápida
+          <input id="searchInput" placeholder="Mes o región...">
+        </label>
+      </div>
+      <div class="stats" id="statsBox"></div>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel chart-card">
+        <h2>Barras comparativas</h2>
+        <canvas id="barChart" width="560" height="280"></canvas>
+      </article>
+      <article class="panel chart-card">
+        <h2>Línea de evolución</h2>
+        <canvas id="lineChart" width="560" height="280"></canvas>
+      </article>
+      <article class="panel chart-card">
+        <h2>Área acumulada</h2>
+        <canvas id="areaChart" width="560" height="280"></canvas>
+      </article>
+      <article class="panel chart-card">
+        <h2>Donut por regiones</h2>
+        <canvas id="donutChart" width="560" height="280"></canvas>
+      </article>
+      <article class="panel chart-card">
+        <h2>Radar KPI mensual</h2>
+        <canvas id="radarChart" width="560" height="280"></canvas>
+      </article>
+      <article class="panel chart-card">
+        <h2>Heatmap ventas (mes x región)</h2>
+        <canvas id="heatmapChart" width="560" height="280"></canvas>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Dataset (persistencia IndexedDB)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Año</th>
+              <th>Región</th>
+              <th>Ventas</th>
+              <th>Costes</th>
+              <th>Tickets</th>
+              <th>Satisfacción</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="rowDialog" class="dialog">
+    <form id="rowForm" class="dialog-form" method="dialog">
+      <h3>Nuevo registro</h3>
+      <div class="row row-3">
+        <label>Mes
+          <select id="formMonth" required>
+            <option value="Ene">Ene</option><option value="Feb">Feb</option><option value="Mar">Mar</option><option value="Abr">Abr</option>
+            <option value="May">May</option><option value="Jun">Jun</option><option value="Jul">Jul</option><option value="Ago">Ago</option>
+            <option value="Sep">Sep</option><option value="Oct">Oct</option><option value="Nov">Nov</option><option value="Dic">Dic</option>
+          </select>
+        </label>
+        <label>Año
+          <input id="formYear" type="number" min="2020" max="2035" value="2026" required>
+        </label>
+        <label>Región
+          <select id="formRegion" required>
+            <option value="Norte">Norte</option>
+            <option value="Sur">Sur</option>
+            <option value="Este">Este</option>
+            <option value="Oeste">Oeste</option>
+          </select>
+        </label>
+      </div>
+      <div class="row row-4">
+        <label>Ventas
+          <input id="formVentas" type="number" min="0" value="100" required>
+        </label>
+        <label>Costes
+          <input id="formCostes" type="number" min="0" value="60" required>
+        </label>
+        <label>Tickets
+          <input id="formTickets" type="number" min="0" value="25" required>
+        </label>
+        <label>Satisfacción (0-100)
+          <input id="formSatisfaccion" type="number" min="0" max="100" value="80" required>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit">Guardar</button>
+        <button type="button" id="cancelDialogBtn" class="secondary">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="lib/nouscharts.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
