@@ -1,178 +1,156 @@
-# Actividad: Librería de Visualización con Canvas API — NousCharts Lab
+# Librería de Visualización de Datos - NousCharts Lab
 
-**Nombre y Apellidos:** Luis Adolfo Roces Dapena  
 **DNI:** 53945291X  
-**Asignatura:** Desarrollo de Interfaces  
-**Fecha de Entrega:** 15 / 06 / 2025  
-**Lección:** `dam2526/Segundo/Desarrollo de interfaces/301-Actividades final de unidad - Segundo trimestre/003-Libreria de visualizacion personalizada`
+**Curso:** DAM2 — Desarrollo de interfaces  
+**Actividad:** 004-Actividad de gráficas  
+**Tecnologías:** Canvas API · JavaScript ES6 · IndexedDB · Visualización de datos  
+**Fecha:** 17 de febrero de 2026
 
 ---
 
-## Índice
+## 1. Introducción breve y contextualización (25%)
 
-1. [Introducción y Objetivos del Proyecto](#1-introducción-y-objetivos-del-proyecto)
-2. [Tecnologías Empleadas](#2-tecnologías-empleadas)
-3. [Arquitectura del Proyecto](#3-arquitectura-del-proyecto)
-4. [Desarrollo de la Librería NousCharts](#4-desarrollo-de-la-librería-nouscharts)
-5. [Sistema de Persistencia — IndexedDB](#5-sistema-de-persistencia--indexeddb)
-6. [Dashboard — Filtros, Agregaciones y KPIs](#6-dashboard--filtros-agregaciones-y-kpis)
-7. [Interfaz de Usuario — Panel de Control](#7-interfaz-de-usuario--panel-de-control)
-8. [Mejoras v2 Implementadas](#8-mejoras-v2-implementadas)
-9. [Patrones de Error y Soluciones](#9-patrones-de-error-y-soluciones)
-10. [Conclusiones y Aprendizajes](#10-conclusiones-y-aprendizajes)
+### Concepto general
 
----
+Una librería de visualización de datos es un conjunto de funciones reutilizables que transforman datos numéricos en representaciones gráficas comprensibles. A diferencia de usar librerías externas como Chart.js o D3.js, este proyecto implementa una librería personalizada desde cero utilizando Canvas API, lo que permite:
 
-## 1. Introducción y Objetivos del Proyecto
+- **Control total del renderizado:** Personalización completa de estilos y comportamientos
+- **Independencia de dependencias:** Sin necesidad de importar bibliotecas de terceros
+- **Aprendizaje profundo:** Comprensión de algoritmos de visualización y geometría
+- **Optimización específica:** Rendimiento ajustado a necesidades concretas
 
-### 1.1 Contexto
+### Tipos de gráficas implementadas
 
-NousCharts Lab es una librería de visualización de datos construida enteramente sobre la **Canvas API** del navegador, acompañada de un dashboard empresarial interactivo que demuestra sus capacidades. El proyecto se ejecuta como una SPA (Single-Page Application) sin dependencias externas de JavaScript: toda la lógica de renderizado, persistencia y UI está implementada con vanilla JS.
+La librería **NousCharts** incluye seis tipos de visualizaciones:
 
-La librería expone **6 tipos de gráficas** (barras, línea, área, donut, radar y heatmap) a través de un objeto global `window.NousCharts`, y el dashboard consume esa API para presentar datos comerciales ficticios (ventas, costes, tickets y satisfacción) agrupados por mes y región.
+1. **Gráfica de barras:** Comparación de valores discretos entre categorías
+2. **Gráfica de línea:** Evolución temporal o tendencias continuas
+3. **Gráfica de área:** Similar a línea pero con relleno acumulativo
+4. **Gráfica donut:** Distribución porcentual de un total entre categorías
+5. **Gráfica radar:** Comparación multidimensional de múltiples variables
+6. **Mapa de calor (heatmap):** Visualización matricial de intensidades
 
-### 1.2 Objetivos
+### Contexto y utilidad
 
-1. Diseñar e implementar una librería de gráficas reutilizable (`lib/nouscharts.js`) que dibuje sobre `<canvas>` sin frameworks ni librerías externas.
-2. Soportar **6 tipos de visualización**: barras, línea, área, donut, radar y heatmap, cada uno con opciones de personalización de color para integrar dark mode.
-3. Persistir el dataset en **IndexedDB** con operaciones CRUD asíncronas y generación automática de datos semilla (*auto-seed*).
-4. Construir un dashboard con filtros dinámicos (año, región, métrica, búsqueda), 4 KPIs en tiempo real y una tabla de datos editable.
-5. Incorporar mejoras de UX: navegación por pestañas, dark mode con `localStorage`, notificaciones toast, diálogos de confirmación personalizados, exportación/importación JSON y formato numérico localizado (`es-ES`).
+Las visualizaciones de datos son fundamentales porque:
 
-### 1.3 Arquitectura general
+- **Comunicación efectiva:** Transmiten información compleja de forma inmediata
+- **Detección de patrones:** Revelan tendencias y anomalías no evidentes en tablas
+- **Toma de decisiones:** Facilitan el análisis comparativo y temporal
+- **Presentación profesional:** Mejoran reportes y dashboards empresariales
 
-```
-NousCharts-Lab/
-├── index.html          ← Punto de entrada, estructura HTML completa
-├── assets/
-│   ├── app.js          ← Lógica del dashboard (DB, filtros, eventos, render)
-│   └── styles.css      ← Estilos v2 (dark mode, tabs, toasts, responsive)
-└── lib/
-    └── nouscharts.js   ← Librería de gráficas sobre Canvas API (6 tipos)
-```
+Este proyecto demuestra cómo construir renderizadores personalizados con Canvas API, implementar algoritmos de escalado y posicionamiento, y gestionar datos empresariales con IndexedDB.
 
-La separación en dos scripts permite que `nouscharts.js` sea **portable**: cualquier proyecto puede incluirlo y llamar a `NousCharts.drawBarChart(canvas, labels, values, options)` sin depender del dashboard.
+### Arquitectura del sistema
+
+El sistema se compone de cuatro capas:
+
+1. **Capa de visualización (`lib/nouscharts.js`):** Funciones puras de renderizado Canvas
+2. **Capa de datos (`IndexedDB`):** Persistencia de registros empresariales
+3. **Capa de lógica (`assets/app.js`):** Agregaciones, filtros y transformaciones
+4. **Capa de presentación (`index.html`):** Dashboard con múltiples gráficas sincronizadas
 
 ---
 
-## 2. Tecnologías Empleadas
+## 2. Desarrollo detallado y preciso (25%)
 
-| Tecnología         | Uso en el proyecto                                              |
-| ------------------ | --------------------------------------------------------------- |
-| **HTML5**          | Estructura semántica, elementos `<canvas>`, `<dialog>`, `<nav>` |
-| **CSS3**           | Custom properties, `color-mix()`, `backdrop-filter`, Grid, animaciones |
-| **JavaScript ES6** | Async/await, destructuring, template literals, arrow functions  |
-| **Canvas API**     | Renderizado de las 6 gráficas (paths, arcs, gradientes, texto) |
-| **IndexedDB**      | Persistencia local del dataset con object stores e índices      |
-| **Google Fonts**   | Tipografía Inter para una UI moderna y legible                  |
-
-No se emplean librerías de terceros ni procesos de compilación. El proyecto funciona directamente sobre cualquier servidor estático.
-
----
-
-## 3. Arquitectura del Proyecto
-
-### 3.1 Rol de cada fichero
-
-| Fichero              | Responsabilidad                                                             |
-| -------------------- | --------------------------------------------------------------------------- |
-| `index.html`         | Estructura HTML: header, tabs, 6 canvas, tabla, diálogos, toast container  |
-| `lib/nouscharts.js`  | Funciones puras de dibujo sobre Canvas; expone API vía `window.NousCharts` |
-| `assets/app.js`      | IndexedDB, estado, filtros, agregaciones, KPIs, eventos de UI, boot        |
-| `assets/styles.css`  | Diseño visual: custom properties, dark mode, grid responsive, animaciones  |
-
-### 3.2 Flujo de datos
-
-```
-IndexedDB  ─── getAllRows() ──▸  state.rows
-                                    │
-                              applyFilters()
-                                    │
-                              state.filtered
-                                    │
-                    ┌───────────────┼────────────────┐
-                    ▼               ▼                ▼
-              renderStats()   renderTable()    renderCharts()
-              (4 KPIs)        (tabla HTML)     (6 canvas vía NousCharts)
-```
-
----
-
-## 4. Desarrollo de la Librería NousCharts
-
-### 4.1 Fundamentos de Canvas API
-
-Cada función de la librería recibe un elemento `<canvas>` y opera sobre su contexto 2D (`canvas.getContext('2d')`). Canvas API proporciona primitivas de bajo nivel: `fillRect`, `strokeRect`, `arc`, `lineTo`, `fillText`, gradientes lineales, etc. A diferencia de gráficas SVG, el dibujado es *inmediato*: cada frame se repinta completo.
-
-### 4.2 Funciones auxiliares (Helpers)
-
-#### 4.2.1 `clear` — Limpieza del canvas
-
-Rellena el canvas completo con un color de fondo antes de dibujar:
+### Fundamentos de Canvas API
 
 ```javascript
-function clear(ctx, canvas, bg = '#ffffff') {
+// lib/nouscharts.js - Funciones auxiliares base
+
+/**
+ * Limpia el canvas con color de fondo
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ * @param {HTMLCanvasElement} canvas - Elemento canvas
+ * @param {string} bg - Color de fondo (default: blanco)
+ */
+function clear(ctx, canvas, bg = "#ffffff") {
   ctx.save();
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.restore();
 }
-```
 
-El uso de `ctx.save()` / `ctx.restore()` es un patrón fundamental para preservar el estado del contexto gráfico y evitar efectos colaterales entre funciones.
-
-#### 4.2.2 `getRange` — Rango de valores
-
-```javascript
+/**
+ * Calcula rango mínimo y máximo de valores
+ * @param {Array<number>} values - Array de valores numéricos
+ * @returns {Object} - { min, max }
+ */
 function getRange(values) {
-  return { min: Math.min(...values, 0), max: Math.max(...values, 1) };
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  return { min, max };
 }
-```
 
-Incluye `0` en el mínimo y `1` en el máximo para evitar divisiones por cero o rangos vacíos.
-
-#### 4.2.3 `drawAxes` — Ejes X e Y
-
-```javascript
-function drawAxes(ctx, x, y, w, h, color = '#d9dde2') {
+/**
+ * Dibuja ejes cartesianos
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - Coordenada X del origen
+ * @param {number} y - Coordenada Y del origen
+ * @param {number} w - Ancho del área de gráfica
+ * @param {number} h - Alto del área de gráfica
+ * @param {string} color - Color de los ejes
+ */
+function drawAxes(ctx, x, y, w, h, color = "#d9dde2") {
   ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x, y + h);
-  ctx.lineTo(x + w, y + h);
+  ctx.moveTo(x, y); // Eje Y superior
+  ctx.lineTo(x, y + h); // Eje Y inferior
+  ctx.lineTo(x + w, y + h); // Eje X derecha
   ctx.stroke();
   ctx.restore();
 }
-```
 
-Dibuja un eje en forma de L con un path de dos segmentos.
-
-#### 4.2.4 `drawGrid` — Rejilla horizontal
-
-```javascript
-function drawGrid(ctx, x, y, w, h, steps = 5, color = '#eef0f3') {
+/**
+ * Dibuja líneas de cuadrícula horizontales
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} x - Coordenada X inicio
+ * @param {number} y - Coordenada Y inicio
+ * @param {number} w - Ancho
+ * @param {number} h - Alto
+ * @param {number} steps - Número de divisiones
+ * @param {string} color - Color de la cuadrícula
+ */
+function drawGrid(ctx, x, y, w, h, steps = 5, color = "#eef0f3") {
   ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = 1;
+
   for (let i = 1; i <= steps; i++) {
-    const yy = y + (h / steps) * i;
+    const yPos = y + (h / steps) * i;
     ctx.beginPath();
-    ctx.moveTo(x, yy);
-    ctx.lineTo(x + w, yy);
+    ctx.moveTo(x, yPos);
+    ctx.lineTo(x + w, yPos);
     ctx.stroke();
   }
+
   ctx.restore();
 }
-```
 
-Genera líneas horizontales equidistantes para dar referencia visual a las magnitudes.
-
-#### 4.2.5 `text` — Texto parametrizable
-
-```javascript
-function text(ctx, str, x, y, color = '#374151', align = 'left', size = 11, weight = '400') {
+/**
+ * Renderiza texto con estilos configurables
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {string} str - Texto a renderizar
+ * @param {number} x - Posición X
+ * @param {number} y - Posición Y
+ * @param {string} color - Color del texto
+ * @param {string} align - Alineación (left, center, right)
+ * @param {number} size - Tamaño de fuente
+ * @param {string} weight - Peso de fuente (400, 600, 700)
+ */
+function text(
+  ctx,
+  str,
+  x,
+  y,
+  color = "#374151",
+  align = "left",
+  size = 11,
+  weight = "400",
+) {
   ctx.save();
   ctx.fillStyle = color;
   ctx.textAlign = align;
@@ -182,299 +160,481 @@ function text(ctx, str, x, y, color = '#374151', align = 'left', size = 11, weig
 }
 ```
 
-Centraliza toda la escritura de texto con parámetros de color, alineación, tamaño y peso.
-
-### 4.3 Tipos de gráfica
-
-Todas las funciones de gráfica siguen la misma firma:
-
-```
-drawXxx(canvas, labels, values, options = {})
-```
-
-El objeto `options` permite personalizar **todos** los colores, lo que facilita la integración con dark mode desde la aplicación consumidora.
-
-#### A. `drawBarChart` — Gráfica de barras
-
-Dibuja barras verticales proporcionales al valor máximo, con etiquetas en el eje X y valores sobre cada barra:
+### Gráfica de barras
 
 ```javascript
+/**
+ * Dibuja gráfica de barras verticales
+ * @param {HTMLCanvasElement} canvas - Canvas donde renderizar
+ * @param {Array<string>} labels - Etiquetas del eje X
+ * @param {Array<number>} values - Valores numéricos
+ * @param {Object} options - Opciones de estilo
+ */
 function drawBarChart(canvas, labels, values, options = {}) {
-  const ctx = canvas.getContext('2d');
-  const bg = options.bg || '#ffffff';
-  const gridColor = options.gridColor || '#eef0f3';
-  const axisColor = options.axisColor || '#d9dde2';
-  const labelColor = options.labelColor || '#6b7280';
-  const textColor = options.textColor || '#374151';
-  const barColor = options.color || '#4b5563';
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
 
-  clear(ctx, canvas, bg);
-  const pad = 38, x = pad, y = 18;
-  const w = canvas.width - pad * 2, h = canvas.height - 52;
+  // Definir área de gráfica con padding
+  const pad = 38;
+  const x = pad;
+  const y = 18;
+  const w = canvas.width - pad * 2;
+  const h = canvas.height - 52;
 
-  drawGrid(ctx, x, y, w, h, 5, gridColor);
-  drawAxes(ctx, x, y, w, h, axisColor);
+  // Dibujar cuadrícula y ejes
+  drawGrid(ctx, x, y, w, h, 5);
+  drawAxes(ctx, x, y, w, h);
 
+  // Calcular escala vertical
   const { max } = getRange(values);
-  const gap = w / Math.max(values.length, 1);
-  const barW = gap * 0.58;
 
-  values.forEach((v, i) => {
-    const barH = (v / max) * (h - 8);
-    const bx = x + i * gap + (gap - barW) / 2;
-    const by = y + h - barH;
-    ctx.fillStyle = barColor;
-    ctx.fillRect(bx, by, barW, barH);
-    text(ctx, labels[i], bx + barW / 2, y + h + 16, labelColor, 'center', 10);
-    text(ctx, v, bx + barW / 2, by - 6, textColor, 'center', 10, '600');
+  // Calcular dimensiones de barras
+  const barWidth = (w / Math.max(values.length, 1)) * 0.58; // 58% del espacio disponible
+  const gap = w / Math.max(values.length, 1); // Espacio total por barra
+
+  // Renderizar cada barra
+  values.forEach((value, index) => {
+    // Altura proporcional al valor
+    const barHeight = (value / max) * (h - 8);
+
+    // Posición X centrada en su espacio
+    const barX = x + index * gap + (gap - barWidth) / 2;
+
+    // Posición Y desde el eje inferior hacia arriba
+    const barY = y + h - barHeight;
+
+    // Dibujar rectángulo de la barra
+    ctx.fillStyle = options.color || "#4b5563";
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+
+    // Etiqueta inferior (categoría)
+    text(
+      ctx,
+      labels[index],
+      barX + barWidth / 2,
+      y + h + 16,
+      "#6b7280",
+      "center",
+      10,
+    );
+
+    // Valor superior (número)
+    text(
+      ctx,
+      value,
+      barX + barWidth / 2,
+      barY - 6,
+      "#374151",
+      "center",
+      10,
+      "600",
+    );
   });
 }
 ```
 
-**Aspectos clave:**
-
-- El ancho de barra (`barW`) es el 58 % del espacio disponible por columna (`gap * 0.58`), dejando separación visual entre barras.
-- La altura de cada barra se calcula proporcionalmente: `(v / max) * (h - 8)`.
-- Se muestra el valor numérico encima de la barra con `text()` en peso `600`.
-
-#### B. `drawLineChart` — Gráfica de línea
-
-Conecta los puntos con un trazo continuo y dibuja círculos en cada dato:
+### Gráfica de línea
 
 ```javascript
+/**
+ * Dibuja gráfica de línea con puntos marcadores
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<string>} labels - Etiquetas del eje X
+ * @param {Array<number>} values - Valores numéricos
+ * @param {Object} options - { color, pointColor, bg }
+ */
 function drawLineChart(canvas, labels, values, options = {}) {
-  const ctx = canvas.getContext('2d');
-  // ...opciones de color...
-  clear(ctx, canvas, bg);
-  const pad = 38, x = pad, y = 18;
-  const w = canvas.width - pad * 2, h = canvas.height - 52;
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
 
-  drawGrid(ctx, x, y, w, h, 5, gridColor);
-  drawAxes(ctx, x, y, w, h, axisColor);
+  const pad = 38;
+  const x = pad;
+  const y = 18;
+  const w = canvas.width - pad * 2;
+  const h = canvas.height - 52;
+
+  drawGrid(ctx, x, y, w, h, 5);
+  drawAxes(ctx, x, y, w, h);
 
   const { max } = getRange(values);
-  const step = w / Math.max(values.length - 1, 1);
+  const step = w / Math.max(values.length - 1, 1); // Espacio entre puntos
 
+  // Dibujar línea conectora
   ctx.save();
-  ctx.strokeStyle = lineColor;
+  ctx.strokeStyle = options.color || "#374151";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  values.forEach((v, i) => {
-    const px = x + i * step, py = y + h - (v / max) * (h - 8);
-    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+
+  values.forEach((value, index) => {
+    const px = x + index * step;
+    const py = y + h - (value / max) * (h - 8);
+
+    if (index === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
   });
+
   ctx.stroke();
   ctx.restore();
 
-  values.forEach((v, i) => {
-    const px = x + i * step, py = y + h - (v / max) * (h - 8);
-    ctx.fillStyle = ptColor;
+  // Dibujar puntos marcadores
+  values.forEach((value, index) => {
+    const px = x + index * step;
+    const py = y + h - (value / max) * (h - 8);
+
+    // Círculo
+    ctx.fillStyle = options.pointColor || "#111827";
     ctx.beginPath();
     ctx.arc(px, py, 3.5, 0, Math.PI * 2);
     ctx.fill();
-    text(ctx, labels[i], px, y + h + 16, labelColor, 'center', 10);
+
+    // Etiqueta
+    text(ctx, labels[index], px, y + h + 16, "#6b7280", "center", 10);
   });
 }
 ```
 
-Se utiliza un único `beginPath()` con `moveTo` / `lineTo` para el trazo de línea, y luego un bucle independiente para los puntos (`arc` con radio 3.5px).
-
-#### C. `drawAreaChart` — Gráfica de área
-
-Combina la técnica de la línea con un relleno gradiente vertical:
+### Gráfica de área
 
 ```javascript
+/**
+ * Dibuja gráfica de área con gradiente
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<string>} labels
+ * @param {Array<number>} values
+ * @param {Object} options - { fillTop, fillBottom, stroke }
+ */
 function drawAreaChart(canvas, labels, values, options = {}) {
-  const ctx = canvas.getContext('2d');
-  // ...opciones de color...
-  clear(ctx, canvas, bg);
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
+
+  const pad = 38;
+  const x = pad;
+  const y = 18;
+  const w = canvas.width - pad * 2;
+  const h = canvas.height - 52;
+
+  drawGrid(ctx, x, y, w, h, 5);
+  drawAxes(ctx, x, y, w, h);
 
   const { max } = getRange(values);
   const step = w / Math.max(values.length - 1, 1);
-  const points = values.map((v, i) => ({
-    x: x + i * step,
-    y: y + h - (v / max) * (h - 8)
+
+  // Calcular puntos de la línea
+  const points = values.map((value, index) => ({
+    x: x + index * step,
+    y: y + h - (value / max) * (h - 8),
   }));
 
-  const grad = ctx.createLinearGradient(0, y, 0, y + h);
-  grad.addColorStop(0, options.fillTop || 'rgba(55,65,81,0.35)');
-  grad.addColorStop(1, options.fillBottom || 'rgba(55,65,81,0.04)');
+  // Crear gradiente vertical
+  const gradient = ctx.createLinearGradient(0, y, 0, y + h);
+  gradient.addColorStop(0, options.fillTop || "rgba(55,65,81,0.35)");
+  gradient.addColorStop(1, options.fillBottom || "rgba(55,65,81,0.04)");
 
+  // Dibujar área rellena
   ctx.save();
   ctx.beginPath();
-  points.forEach((p, i) => {
-    i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y);
+
+  // Seguir puntos de la línea
+  points.forEach((point, index) => {
+    if (index === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
   });
+
+  // Cerrar path por la base
   ctx.lineTo(x + w, y + h);
   ctx.lineTo(x, y + h);
   ctx.closePath();
-  ctx.fillStyle = grad;
+
+  ctx.fillStyle = gradient;
   ctx.fill();
   ctx.restore();
-  // ...trazo de línea encima del relleno...
+
+  // Dibujar línea del contorno superior
+  ctx.save();
+  ctx.strokeStyle = options.stroke || "#374151";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  points.forEach((point, index) => {
+    if (index === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  });
+
+  ctx.stroke();
+  ctx.restore();
+
+  // Etiquetas
+  labels.forEach((label, index) => {
+    text(ctx, label, x + index * step, y + h + 16, "#6b7280", "center", 10);
+  });
 }
 ```
 
-El gradiente (`createLinearGradient`) va de una opacidad visible (0.35) en la parte superior a casi transparente (0.04) en la base, generando un efecto de profundidad elegante. El área se cierra conectando el último punto con las esquinas inferiores del gráfico.
-
-#### D. `drawDonutChart` — Gráfica de donut
-
-Utiliza arcos sucesivos para los segmentos y un círculo interior para el efecto "dona":
+### Gráfica donut
 
 ```javascript
+/**
+ * Dibuja gráfica de donut con leyenda
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<string>} labels - Nombres de categorías
+ * @param {Array<number>} values - Valores numéricos
+ * @param {Object} options - { colors, centerText, bg }
+ */
 function drawDonutChart(canvas, labels, values, options = {}) {
-  const ctx = canvas.getContext('2d');
-  // ...opciones...
-  const cx = canvas.width / 2, cy = canvas.height / 2;
-  const r = Math.min(canvas.width, canvas.height) * 0.33;
-  const inner = r * 0.56;
-  const sum = values.reduce((a, b) => a + b, 0) || 1;
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
 
-  const colors = options.colors || ['#374151','#6b7280','#9ca3af','#d1d5db','#4b5563'];
+  // Configuración del donut
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const radius = Math.min(canvas.width, canvas.height) * 0.33;
+  const innerRadius = radius * 0.56; // Radio del agujero interior
 
-  let start = -Math.PI / 2;
-  values.forEach((v, i) => {
-    const arc = (v / sum) * Math.PI * 2;
+  const total = values.reduce((acc, val) => acc + val, 0) || 1;
+
+  const colors = options.colors || [
+    "#374151",
+    "#6b7280",
+    "#9ca3af",
+    "#d1d5db",
+    "#4b5563",
+  ];
+
+  // Dibujar sectores
+  let startAngle = -Math.PI / 2; // Comenzar desde arriba (12 en punto)
+
+  values.forEach((value, index) => {
+    const arcAngle = (value / total) * Math.PI * 2;
+    const endAngle = startAngle + arcAngle;
+
+    // Dibujar sector
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, start + arc);
+    ctx.arc(cx, cy, radius, startAngle, endAngle);
     ctx.closePath();
-    ctx.fillStyle = colors[i % colors.length];
+    ctx.fillStyle = colors[index % colors.length];
     ctx.fill();
     ctx.restore();
-    start += arc;
+
+    startAngle = endAngle;
   });
 
-  // Recorte interior → efecto donut
+  // Dibujar agujero interior (centro blanco)
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy, inner, 0, Math.PI * 2);
-  ctx.fillStyle = bg;
+  ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+  ctx.fillStyle = options.bg || "#ffffff";
   ctx.fill();
   ctx.restore();
 
-  text(ctx, options.centerText || 'Total', cx, cy - 4, mutedColor, 'center', 11, '600');
-  text(ctx, sum, cx, cy + 14, totalColor, 'center', 15, '700');
+  // Texto central
+  text(
+    ctx,
+    options.centerText || "Total",
+    cx,
+    cy - 4,
+    "#6b7280",
+    "center",
+    11,
+    "600",
+  );
+  text(ctx, total, cx, cy + 14, "#111827", "center", 15, "700");
+
+  // Leyenda lateral
+  labels.forEach((label, index) => {
+    const yPos = 20 + index * 16;
+
+    // Cuadrado de color
+    ctx.fillStyle = colors[index % colors.length];
+    ctx.fillRect(12, yPos - 8, 10, 10);
+
+    // Texto de leyenda
+    text(ctx, `${label} (${values[index]})`, 28, yPos, "#374151", "left", 10);
+  });
 }
 ```
 
-**Técnicas empleadas:**
-
-- El ángulo inicial es `-Math.PI / 2` (las 12 en punto) para que la primera "porción" comience arriba.
-- El radio interior (`r * 0.56`) crea el hueco; se rellena con el color de fondo para simular el agujero.
-- En el centro se muestra el texto de la métrica y la suma total.
-- La leyenda se dibuja con pequeños rectángulos de color alineados a la izquierda.
-
-#### E. `drawRadarChart` — Gráfica de radar
-
-Dibuja una malla poligonal con N ejes y superpone el polígono de datos:
+### Gráfica radar
 
 ```javascript
+/**
+ * Dibuja gráfica radar (spider/polar)
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<string>} labels - Nombres de las dimensiones
+ * @param {Array<number>} values - Valores para cada dimensión
+ * @param {Object} options - Opciones de estilo
+ */
 function drawRadarChart(canvas, labels, values, options = {}) {
-  const ctx = canvas.getContext('2d');
-  // ...opciones...
-  const cx = canvas.width / 2, cy = canvas.height / 2 + 6;
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
+
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2 + 6;
   const radius = Math.min(canvas.width, canvas.height) * 0.34;
-  const levels = 5;
+  const levels = 5; // Número de anillos concéntricos
   const max = Math.max(...values, 1);
 
-  // Rejilla poligonal (5 niveles)
+  // Dibujar anillos de fondo
   ctx.save();
-  ctx.strokeStyle = gridColor;
-  for (let l = 1; l <= levels; l++) {
-    const rr = (radius / levels) * l;
+  ctx.strokeStyle = "#eceff3";
+
+  for (let level = 1; level <= levels; level++) {
+    const r = (radius / levels) * level;
+
     ctx.beginPath();
-    labels.forEach((_, i) => {
-      const ang = (-Math.PI / 2) + (Math.PI * 2 * i / labels.length);
-      const px = cx + Math.cos(ang) * rr;
-      const py = cy + Math.sin(ang) * rr;
-      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    labels.forEach((_, index) => {
+      const angle = -Math.PI / 2 + (Math.PI * 2 * index) / labels.length;
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
     });
     ctx.closePath();
     ctx.stroke();
   }
 
-  // Ejes radiales + etiquetas
-  labels.forEach((label, i) => {
-    const ang = (-Math.PI / 2) + (Math.PI * 2 * i / labels.length);
-    const px = cx + Math.cos(ang) * radius;
-    const py = cy + Math.sin(ang) * radius;
+  // Dibujar ejes radiales
+  labels.forEach((label, index) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / labels.length;
+    const x = cx + Math.cos(angle) * radius;
+    const y = cy + Math.sin(angle) * radius;
+
+    // Línea del eje
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.lineTo(px, py);
-    ctx.strokeStyle = axisColor;
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = "#eef0f3";
     ctx.stroke();
-    text(ctx, label, cx + Math.cos(ang) * (radius + 16),
-         cy + Math.sin(ang) * (radius + 16), labelColor, 'center', 10);
+
+    // Etiqueta
+    const labelX = cx + Math.cos(angle) * (radius + 16);
+    const labelY = cy + Math.sin(angle) * (radius + 16);
+    text(ctx, label, labelX, labelY, "#6b7280", "center", 10);
   });
 
-  // Polígono de datos
+  ctx.restore();
+
+  // Dibujar polígono de datos
+  ctx.save();
   ctx.beginPath();
-  values.forEach((v, i) => {
-    const ang = (-Math.PI / 2) + (Math.PI * 2 * i / labels.length);
-    const rr = (v / max) * radius;
-    const px = cx + Math.cos(ang) * rr;
-    const py = cy + Math.sin(ang) * rr;
-    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+
+  values.forEach((value, index) => {
+    const angle = -Math.PI / 2 + (Math.PI * 2 * index) / labels.length;
+    const r = (value / max) * radius;
+    const x = cx + Math.cos(angle) * r;
+    const y = cy + Math.sin(angle) * r;
+
+    if (index === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
   });
+
   ctx.closePath();
-  ctx.fillStyle = fillColor;
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = 2;
+  ctx.fillStyle = "rgba(55,65,81,0.20)";
   ctx.fill();
+
+  ctx.strokeStyle = "#374151";
+  ctx.lineWidth = 2;
   ctx.stroke();
+
   ctx.restore();
 }
 ```
 
-El cálculo trigonométrico `cos(ang) * rr` / `sin(ang) * rr` posiciona cada vértice sobre la circunferencia a la distancia proporcional al dato.
-
-#### F. `drawHeatmap` — Mapa de calor
-
-Representa una matriz bidimensional (regiones × meses) con celdas coloreadas por intensidad:
+### Mapa de calor (Heatmap)
 
 ```javascript
+/**
+ * Dibuja heatmap (mapa de calor matricial)
+ * @param {HTMLCanvasElement} canvas
+ * @param {Array<string>} rows - Etiquetas de filas
+ * @param {Array<string>} cols - Etiquetas de columnas
+ * @param {Array<Array<number>>} matrix - Matriz de valores [filas][columnas]
+ * @param {Object} options - Opciones de estilo
+ */
 function drawHeatmap(canvas, rows, cols, matrix, options = {}) {
-  const ctx = canvas.getContext('2d');
-  const bg = options.bg || '#ffffff';
-  const labelColor = options.labelColor || '#6b7280';
-  const heatBase = options.heatColor || '55,65,81';
+  const ctx = canvas.getContext("2d");
+  clear(ctx, canvas, options.bg || "#ffffff");
 
-  clear(ctx, canvas, bg);
-  const padLeft = 70, padTop = 24;
+  const padLeft = 70; // Espacio para etiquetas de filas
+  const padTop = 24; // Espacio superior
   const gridW = canvas.width - padLeft - 18;
   const gridH = canvas.height - padTop - 38;
-  const cw = gridW / Math.max(cols.length, 1);
-  const ch = gridH / Math.max(rows.length, 1);
-  const max = Math.max(...matrix.flat(), 1);
 
-  matrix.forEach((line, r) => {
-    line.forEach((value, c) => {
-      const t = value / max;
-      const alpha = 0.08 + t * 0.82;
-      ctx.fillStyle = `rgba(${heatBase},${alpha})`;
-      ctx.fillRect(padLeft + c * cw, padTop + r * ch, cw - 2, ch - 2);
-      const tc = t > 0.55 ? '#f9fafb' : (options.textColor || '#1f2937');
-      text(ctx, value, padLeft + c * cw + cw / 2,
-           padTop + r * ch + ch / 2 + 4, tc, 'center', 10, '600');
+  // Tamaño de cada celda
+  const cellWidth = gridW / Math.max(cols.length, 1);
+  const cellHeight = gridH / Math.max(rows.length, 1);
+
+  // Encontrar valor máximo para escala de color
+  const flatValues = matrix.flat();
+  const max = Math.max(...flatValues, 1);
+
+  // Renderizar celdas
+  matrix.forEach((row, rowIndex) => {
+    row.forEach((value, colIndex) => {
+      // Calcular intensidad (0 a 1)
+      const intensity = value / max;
+
+      // Transparencia basada en intensidad (8% a 90%)
+      const alpha = 0.08 + intensity * 0.82;
+
+      const cellX = padLeft + colIndex * cellWidth;
+      const cellY = padTop + rowIndex * cellHeight;
+
+      // Dibujar celda con color proporcional
+      ctx.fillStyle = `rgba(55,65,81,${alpha})`;
+      ctx.fillRect(cellX, cellY, cellWidth - 2, cellHeight - 2);
+
+      // Texto del valor (color adaptativo según fondo)
+      const textColor = intensity > 0.55 ? "#f9fafb" : "#1f2937";
+      text(
+        ctx,
+        value,
+        cellX + cellWidth / 2,
+        cellY + cellHeight / 2 + 4,
+        textColor,
+        "center",
+        10,
+        "600",
+      );
     });
   });
 
-  rows.forEach((row, i) => text(ctx, row, padLeft - 8,
-    padTop + i * ch + ch / 2 + 3, labelColor, 'right', 10));
-  cols.forEach((col, i) => text(ctx, col, padLeft + i * cw + cw / 2,
-    padTop + gridH + 16, labelColor, 'center', 10));
+  // Etiquetas de filas (izquierda)
+  rows.forEach((label, index) => {
+    const yPos = padTop + index * cellHeight + cellHeight / 2 + 3;
+    text(ctx, label, padLeft - 8, yPos, "#6b7280", "right", 10);
+  });
+
+  // Etiquetas de columnas (abajo)
+  cols.forEach((label, index) => {
+    const xPos = padLeft + index * cellWidth + cellWidth / 2;
+    const yPos = padTop + gridH + 16;
+    text(ctx, label, xPos, yPos, "#6b7280", "center", 10);
+  });
 }
 ```
 
-**Detalle del color:** en lugar de una paleta discreta, se usa un único color base en formato RGB (`'55,65,81'`) y se modula su canal alfa entre 0.08 (frío) y 0.90 (caliente). Esto genera un degradado continuo. Cuando la intensidad supera 0.55, el texto se muestra en blanco para mantener el contraste.
-
-### 4.4 API pública
-
-La librería expone un objeto global limpio:
+### Exportación de la librería
 
 ```javascript
+// lib/nouscharts.js - Exponer API global
 window.NousCharts = {
   drawBarChart,
   drawLineChart,
@@ -485,651 +645,893 @@ window.NousCharts = {
 };
 ```
 
-Esto permite que `app.js` (u otras aplicaciones) acceda a todas las funciones con `NousCharts.drawBarChart(...)`.
+### Sistema de persistencia con IndexedDB
+
+```javascript
+// assets/app.js - Gestión de base de datos
+const DB_NAME = "nouscharts_db";
+const DB_VERSION = 1;
+const STORE = "records";
+
+/**
+ * Abre conexión a IndexedDB
+ * @returns {Promise<IDBDatabase>}
+ */
+function openDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      if (!db.objectStoreNames.contains(STORE)) {
+        const store = db.createObjectStore(STORE, {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+
+        // Índices para consultas eficientes
+        store.createIndex("year", "year", { unique: false });
+        store.createIndex("region", "region", { unique: false });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Ejecuta acción sobre el object store
+ * @param {string} mode - 'readonly' o 'readwrite'
+ * @param {Function} callback - Función que recibe el store
+ */
+async function dbAction(mode, callback) {
+  const db = await openDb();
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE, mode);
+    const store = transaction.objectStore(STORE);
+    const request = callback(store);
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+
+    transaction.oncomplete = () => db.close();
+  });
+}
+
+// Operaciones CRUD
+const getAllRows = () => dbAction("readonly", (store) => store.getAll());
+const addRow = (row) => dbAction("readwrite", (store) => store.add(row));
+const deleteRow = (id) => dbAction("readwrite", (store) => store.delete(id));
+const clearRows = () => dbAction("readwrite", (store) => store.clear());
+```
+
+### Agregación y transformación de datos
+
+```javascript
+const MONTHS = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
+];
+
+/**
+ * Agrupa datos por mes y suma métrica especificada
+ * @param {string} metric - 'ventas', 'costes', 'tickets', 'satisfaccion'
+ * @returns {Object} - { labels, values }
+ */
+function groupByMonth(metric) {
+  // Inicializar mapa con todos los meses en 0
+  const aggregation = new Map(MONTHS.map((m) => [m, 0]));
+
+  // Sumar valores de registros filtrados
+  state.filtered.forEach((record) => {
+    const currentValue = aggregation.get(record.month) || 0;
+    const recordValue = Number(record[metric] || 0);
+    aggregation.set(record.month, currentValue + recordValue);
+  });
+
+  // Convertir a arrays para gráficas
+  return {
+    labels: MONTHS,
+    values: MONTHS.map((month) => Math.round(aggregation.get(month) || 0)),
+  };
+}
+
+/**
+ * Agrupa datos por región
+ * @param {string} metric
+ * @returns {Object} - { labels, values }
+ */
+function groupByRegion(metric) {
+  const regions = ["Norte", "Sur", "Este", "Oeste"];
+  const aggregation = new Map(regions.map((r) => [r, 0]));
+
+  state.filtered.forEach((record) => {
+    const current = aggregation.get(record.region) || 0;
+    aggregation.set(record.region, current + Number(record[metric] || 0));
+  });
+
+  return {
+    labels: regions,
+    values: regions.map((r) => Math.round(aggregation.get(r) || 0)),
+  };
+}
+
+/**
+ * Genera datos para gráfica radar (promedios de métricas)
+ * @returns {Object} - { labels, values }
+ */
+function radarData() {
+  const metrics = ["ventas", "costes", "tickets", "satisfaccion"];
+
+  const averages = metrics.map((metric) => {
+    const monthlyTotals = groupByMonth(metric).values;
+    const sum = monthlyTotals.reduce((acc, val) => acc + val, 0);
+    const avg = monthlyTotals.length > 0 ? sum / monthlyTotals.length : 0;
+    return Math.round(avg);
+  });
+
+  return {
+    labels: ["Ventas", "Costes", "Tickets", "Satisfacción"],
+    values: averages,
+  };
+}
+
+/**
+ * Genera matriz para heatmap (ventas por región y mes)
+ * @returns {Object} - { rows, cols, matrix }
+ */
+function heatmapData() {
+  const rows = ["Norte", "Sur", "Este", "Oeste"];
+  const cols = MONTHS;
+
+  const matrix = rows.map((region) => {
+    return cols.map((month) => {
+      // Sumar ventas de registros que coincidan región y mes
+      return state.filtered
+        .filter((r) => r.region === region && r.month === month)
+        .reduce((acc, r) => acc + Number(r.ventas || 0), 0);
+    });
+  });
+
+  return { rows, cols, matrix };
+}
+```
 
 ---
 
-## 5. Sistema de Persistencia — IndexedDB
+## 3. Aplicación práctica (25%)
 
-### 5.1 Apertura de la base de datos
+### Dashboard completo integrado
 
 ```javascript
-const DB_NAME = 'nouscharts_db';
-const DB_VERSION = 1;
-const STORE = 'records';
+// assets/app.js - Aplicación principal
+const charts = window.NousCharts;
 
-function openDb() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        const s = db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
-        s.createIndex('year', 'year', { unique: false });
-        s.createIndex('region', 'region', { unique: false });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+const state = {
+  rows: [], // Todos los registros
+  filtered: [], // Registros filtrados
+  year: "all", // Filtro de año
+  region: "all", // Filtro de región
+  metric: "ventas", // Métrica activa
+  search: "", // Búsqueda textual
+};
+
+/**
+ * Referencias a elementos DOM
+ */
+const el = {
+  addRowBtn: document.getElementById("addRowBtn"),
+  seedBtn: document.getElementById("seedBtn"),
+  resetBtn: document.getElementById("resetBtn"),
+  yearFilter: document.getElementById("yearFilter"),
+  regionFilter: document.getElementById("regionFilter"),
+  metricSelect: document.getElementById("metricSelect"),
+  searchInput: document.getElementById("searchInput"),
+  statsBox: document.getElementById("statsBox"),
+  tableBody: document.getElementById("tableBody"),
+  rowDialog: document.getElementById("rowDialog"),
+  rowForm: document.getElementById("rowForm"),
+  barChart: document.getElementById("barChart"),
+  lineChart: document.getElementById("lineChart"),
+  areaChart: document.getElementById("areaChart"),
+  donutChart: document.getElementById("donutChart"),
+  radarChart: document.getElementById("radarChart"),
+  heatmapChart: document.getElementById("heatmapChart"),
+};
+
+/**
+ * Aplica filtros activos sobre datos
+ */
+function applyFilters() {
+  const query = state.search.toLowerCase();
+
+  state.filtered = state.rows.filter((record) => {
+    // Filtro de año
+    const matchesYear =
+      state.year === "all" || String(record.year) === String(state.year);
+
+    // Filtro de región
+    const matchesRegion =
+      state.region === "all" || record.region === state.region;
+
+    // Filtro de búsqueda textual
+    const searchText = `${record.month} ${record.region}`.toLowerCase();
+    const matchesSearch = query === "" || searchText.includes(query);
+
+    return matchesYear && matchesRegion && matchesSearch;
   });
+}
+
+/**
+ * Renderiza estadísticas KPI
+ */
+function renderStats() {
+  const totalRecords = state.filtered.length;
+  const totalVentas = state.filtered.reduce((acc, r) => acc + r.ventas, 0);
+  const totalCostes = state.filtered.reduce((acc, r) => acc + r.costes, 0);
+  const margen = totalVentas - totalCostes;
+
+  el.statsBox.innerHTML = `
+        <article class="kpi">
+            <strong>${totalRecords}</strong>
+            <span>Registros activos</span>
+        </article>
+        <article class="kpi">
+            <strong>${Math.round(totalVentas)}</strong>
+            <span>Ventas acumuladas</span>
+        </article>
+        <article class="kpi">
+            <strong>${Math.round(totalCostes)}</strong>
+            <span>Costes acumulados</span>
+        </article>
+        <article class="kpi">
+            <strong>${Math.round(margen)}</strong>
+            <span>Margen estimado</span>
+        </article>
+    `;
+}
+
+/**
+ * Renderiza tabla de datos
+ */
+function renderTable() {
+  if (!state.filtered.length) {
+    el.tableBody.innerHTML = `
+            <tr><td colspan="8">Sin datos para el filtro actual.</td></tr>
+        `;
+    return;
+  }
+
+  el.tableBody.innerHTML = state.filtered
+    .map(
+      (record) => `
+        <tr data-id="${record.id}">
+            <td>${record.month}</td>
+            <td>${record.year}</td>
+            <td>${record.region}</td>
+            <td>${record.ventas}</td>
+            <td>${record.costes}</td>
+            <td>${record.tickets}</td>
+            <td>${record.satisfaccion}</td>
+            <td>
+                <button class="secondary" data-action="delete">Eliminar</button>
+            </td>
+        </tr>
+    `,
+    )
+    .join("");
+}
+
+/**
+ * Renderiza todas las gráficas
+ */
+function renderCharts() {
+  // Datos agregados
+  const monthlyMetric = groupByMonth(state.metric);
+  const monthlyVentas = groupByMonth("ventas");
+  const byRegion = groupByRegion(state.metric);
+  const radar = radarData();
+  const heat = heatmapData();
+
+  // Renderizar cada gráfica
+  charts.drawBarChart(el.barChart, monthlyMetric.labels, monthlyMetric.values, {
+    color: "#4b5563",
+  });
+
+  charts.drawLineChart(
+    el.lineChart,
+    monthlyMetric.labels,
+    monthlyMetric.values,
+    { color: "#374151" },
+  );
+
+  charts.drawAreaChart(
+    el.areaChart,
+    monthlyVentas.labels,
+    monthlyVentas.values,
+    {},
+  );
+
+  charts.drawDonutChart(el.donutChart, byRegion.labels, byRegion.values, {
+    centerText: state.metric,
+  });
+
+  charts.drawRadarChart(el.radarChart, radar.labels, radar.values, {});
+
+  charts.drawHeatmap(el.heatmapChart, heat.rows, heat.cols, heat.matrix, {});
+}
+
+/**
+ * Renderiza todo el dashboard
+ */
+function renderAll() {
+  applyFilters();
+  renderStats();
+  renderTable();
+  renderCharts();
+}
+
+/**
+ * Recarga datos desde IndexedDB
+ */
+async function refresh() {
+  state.rows = await getAllRows();
+  state.rows.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  rebuildFilters();
+  renderAll();
+}
+
+/**
+ * Reconstruye opciones de filtros dinámicamente
+ */
+function rebuildFilters() {
+  const years = [...new Set(state.rows.map((r) => r.year))].sort(
+    (a, b) => b - a,
+  );
+  const regions = [...new Set(state.rows.map((r) => r.region))].sort();
+
+  el.yearFilter.innerHTML = `
+        <option value="all">Todos</option>
+        ${years.map((y) => `<option value="${y}">${y}</option>`).join("")}
+    `;
+
+  el.regionFilter.innerHTML = `
+        <option value="all">Todas</option>
+        ${regions.map((r) => `<option value="${r}">${r}</option>`).join("")}
+    `;
+
+  el.yearFilter.value = state.year;
+  el.regionFilter.value = state.region;
 }
 ```
 
-- El `onupgradeneeded` solo se ejecuta cuando la versión sube o la BD no existe.
-- Se crean dos índices (`year` y `region`) para consultas eficientes futuras.
-- `autoIncrement: true` genera IDs secuenciales automáticos.
-
-### 5.2 Acción genérica sobre el store
+### Gestión de eventos
 
 ```javascript
-async function dbAction(mode, cb) {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, mode);
-    const store = tx.objectStore(STORE);
-    const r = cb(store);
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    tx.oncomplete = () => db.close();
-  });
-}
-```
+/**
+ * Abrir modal para añadir registro
+ */
+el.addRowBtn.addEventListener("click", () => {
+  el.rowDialog.showModal();
+});
 
-Este patrón reduce la repetición: cada operación CRUD se expresa como una función de una línea:
+/**
+ * Cancelar formulario
+ */
+el.cancelDialogBtn.addEventListener("click", () => {
+  el.rowDialog.close();
+});
 
-```javascript
-const getAllRows = () => dbAction('readonly',  s => s.getAll());
-const addRow    = (row) => dbAction('readwrite', s => s.add(row));
-const deleteRow = (id) => dbAction('readwrite', s => s.delete(id));
-const clearRows = () => dbAction('readwrite', s => s.clear());
-```
+/**
+ * Enviar formulario de nuevo registro
+ */
+el.rowForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-### 5.3 Generación de datos semilla
+  const record = {
+    month: el.formMonth.value,
+    year: Number(el.formYear.value),
+    region: el.formRegion.value,
+    ventas: Number(el.formVentas.value),
+    costes: Number(el.formCostes.value),
+    tickets: Number(el.formTickets.value),
+    satisfaccion: Number(el.formSatisfaccion.value),
+    createdAt: new Date().toISOString(),
+  };
 
-```javascript
+  await addRow(record);
+  el.rowForm.reset();
+  el.rowDialog.close();
+  await refresh();
+});
+
+/**
+ * Cargar dataset de demostración
+ */
+el.seedBtn.addEventListener("click", async () => {
+  const demoData = seedData();
+
+  for (const record of demoData) {
+    await addRow(record);
+  }
+
+  await refresh();
+});
+
+/**
+ * Generador de datos demo
+ */
 function seedData() {
-  const regions = ['Norte', 'Sur', 'Este', 'Oeste'];
-  const out = [];
+  const regions = ["Norte", "Sur", "Este", "Oeste"];
+  const records = [];
+
   for (const month of MONTHS) {
     for (const region of regions) {
       const base = 80 + Math.floor(Math.random() * 140);
-      out.push({
-        month, year: 2026, region,
+      const coste = Math.round(base * (0.45 + Math.random() * 0.25));
+      const tickets = Math.round(base * (0.25 + Math.random() * 0.45));
+      const satisfaccion = 65 + Math.floor(Math.random() * 34);
+
+      records.push({
+        month,
+        year: 2026,
+        region,
         ventas: base,
-        costes: Math.round(base * (0.45 + Math.random() * 0.25)),
-        tickets: Math.round(base * (0.25 + Math.random() * 0.45)),
-        satisfaccion: 65 + Math.floor(Math.random() * 34),
+        costes: coste,
+        tickets,
+        satisfaccion,
         createdAt: new Date().toISOString(),
       });
     }
   }
-  return out;
+
+  return records;
 }
-```
 
-Se generan **48 registros** (12 meses × 4 regiones) con datos aleatorios pero realistas: los costes son entre el 45 %–70 % de las ventas, los tickets se calculan proporcionalmente y la satisfacción oscila entre 65 y 99.
+/**
+ * Reset completo de base de datos
+ */
+el.resetBtn.addEventListener("click", async () => {
+  if (!confirm("¿Seguro que quieres vaciar la base de datos?")) {
+    return;
+  }
 
----
-
-## 6. Dashboard — Filtros, Agregaciones y KPIs
-
-### 6.1 Sistema de filtros
-
-El estado de los filtros se almacena en el objeto `state`:
-
-```javascript
-const state = {
-  rows: [],
-  filtered: [],
-  year: 'all',
-  region: 'all',
-  metric: 'ventas',
-  search: '',
-};
-```
-
-La función `applyFilters` reduce el dataset según los cuatro criterios activos:
-
-```javascript
-function applyFilters() {
-  const q = state.search.toLowerCase();
-  state.filtered = state.rows.filter(r => {
-    return (state.year === 'all' || String(r.year) === String(state.year))
-      && (state.region === 'all' || r.region === state.region)
-      && (q === '' || `${r.month} ${r.region}`.toLowerCase().includes(q));
-  });
-}
-```
-
-Los selectores de año y región se reconstruyen dinámicamente a partir de los datos disponibles:
-
-```javascript
-function rebuildFilters() {
-  const years = [...new Set(state.rows.map(r => r.year))].sort((a, b) => b - a);
-  const regions = [...new Set(state.rows.map(r => r.region))].sort();
-  el.yearFilter.innerHTML = `<option value="all">Todos</option>${years.map(y =>
-    `<option value="${y}">${y}</option>`).join('')}`;
-  el.regionFilter.innerHTML = `<option value="all">Todas</option>${regions.map(r =>
-    `<option value="${r}">${r}</option>`).join('')}`;
-}
-```
-
-### 6.2 Funciones de agregación
-
-#### `groupByMonth` — Agrupación mensual
-
-```javascript
-function groupByMonth(metric) {
-  const map = new Map(MONTHS.map(m => [m, 0]));
-  state.filtered.forEach(r =>
-    map.set(r.month, (map.get(r.month) || 0) + Number(r[metric] || 0))
-  );
-  return {
-    labels: MONTHS,
-    values: MONTHS.map(m => Math.round(map.get(m) || 0))
-  };
-}
-```
-
-Utiliza un `Map` preinicializado con los 12 meses para asegurar que todos aparezcan aunque no haya datos.
-
-#### `groupByRegion` — Agrupación por región
-
-```javascript
-function groupByRegion(metric) {
-  const regions = ['Norte', 'Sur', 'Este', 'Oeste'];
-  const map = new Map(regions.map(r => [r, 0]));
-  state.filtered.forEach(r =>
-    map.set(r.region, (map.get(r.region) || 0) + Number(r[metric] || 0))
-  );
-  return {
-    labels: regions,
-    values: regions.map(r => Math.round(map.get(r) || 0))
-  };
-}
-```
-
-#### `radarData` — Promedio de las cuatro métricas
-
-```javascript
-function radarData() {
-  const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-  return {
-    labels: ['Ventas', 'Costes', 'Tickets', 'Satisfaccion'],
-    values: ['ventas', 'costes', 'tickets', 'satisfaccion']
-      .map(m => Math.round(avg(groupByMonth(m).values))),
-  };
-}
-```
-
-#### `heatmapData` — Matriz región × mes
-
-```javascript
-function heatmapData() {
-  const rows = ['Norte', 'Sur', 'Este', 'Oeste'];
-  const matrix = rows.map(region =>
-    MONTHS.map(month =>
-      state.filtered
-        .filter(r => r.region === region && r.month === month)
-        .reduce((a, r) => a + Number(r.ventas || 0), 0)
-    )
-  );
-  return { rows, cols: MONTHS, matrix };
-}
-```
-
-### 6.3 Renderizado de KPIs
-
-```javascript
-const fmt = v => Number(v).toLocaleString('es-ES');
-
-function renderStats() {
-  const n = state.filtered.length;
-  const v = state.filtered.reduce((a, r) => a + r.ventas, 0);
-  const c = state.filtered.reduce((a, r) => a + r.costes, 0);
-  const m = v - c;
-  const margenClass = m >= 0 ? 'kpi-positive' : 'kpi-negative';
-  el.statsBox.innerHTML = `
-    <article class="kpi kpi-blue">
-      <strong>${fmt(n)}</strong><span>Registros activos</span>
-    </article>
-    <article class="kpi kpi-green">
-      <strong>${fmt(Math.round(v))}</strong><span>Ventas acumuladas</span>
-    </article>
-    <article class="kpi kpi-amber">
-      <strong>${fmt(Math.round(c))}</strong><span>Costes acumulados</span>
-    </article>
-    <article class="kpi ${margenClass}">
-      <strong>${fmt(Math.round(m))}</strong><span>Margen estimado</span>
-    </article>
-  `;
-}
-```
-
-Cada KPI tiene un **borde lateral coloreado** (azul, verde, ámbar, positivo/negativo) que se activa mediante clases CSS semánticas.
-
----
-
-## 7. Interfaz de Usuario — Panel de Control
-
-### 7.1 Estructura HTML con pestañas
-
-El HTML emplea el elemento nativo `<nav>` para las pestañas y `<dialog>` para los modales:
-
-```html
-<!-- Tabs -->
-<nav class="tabs">
-  <button class="tab active" data-tab="dashboard">Dashboard</button>
-  <button class="tab" data-tab="dataset">Dataset</button>
-</nav>
-
-<!-- TAB: Dashboard -->
-<div id="tab-dashboard" class="tab-content active">
-  <!-- Controles, KPIs, 6 gráficas en grid de 2 columnas -->
-</div>
-
-<!-- TAB: Dataset -->
-<div id="tab-dataset" class="tab-content">
-  <!-- Tabla, botones de acción, import/export -->
-</div>
-```
-
-La lógica de cambio de pestaña es sencilla y eficiente:
-
-```javascript
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(`tab-${btn.dataset.tab}`)?.classList.add('active');
-  });
-});
-```
-
-### 7.2 Sistema de diálogos
-
-Se utilizan dos `<dialog>` nativos: uno para añadir registros y otro para confirmaciones:
-
-```html
-<!-- Dialog nuevo registro -->
-<dialog id="rowDialog" class="dialog">
-  <form id="rowForm" method="dialog">
-    <div class="dialog-header">
-      <h3>Nuevo registro</h3>
-      <button type="button" id="closeDialogBtn" class="icon-btn close-btn">&times;</button>
-    </div>
-    <div class="dialog-body">
-      <!-- Campos: mes, año, región, ventas, costes, tickets, satisfacción -->
-    </div>
-    <div class="dialog-footer">
-      <button type="submit">Guardar</button>
-      <button type="button" id="cancelDialogBtn" class="secondary">Cancelar</button>
-    </div>
-  </form>
-</dialog>
-```
-
-El diálogo de confirmación personalizado devuelve una **Promise** para un flujo `async/await` limpio:
-
-```javascript
-function nousConfirm(title, msg) {
-  return new Promise(resolve => {
-    el.confirmTitle.textContent = title;
-    el.confirmMsg.textContent = msg;
-    el.confirmDialog.showModal();
-    const cleanup = (val) => { el.confirmDialog.close(); resolve(val); };
-    el.confirmOk.onclick = () => cleanup(true);
-    el.confirmCancel.onclick = () => cleanup(false);
-  });
-}
-```
-
-Uso:
-
-```javascript
-el.resetBtn.addEventListener('click', async () => {
-  const ok = await nousConfirm('Reset base de datos',
-    'Se eliminaran todos los registros. Esta accion no se puede deshacer.');
-  if (!ok) return;
   await clearRows();
-  toast('Base de datos vaciada', 'success');
   await refresh();
 });
+
+/**
+ * Eliminar registro individual
+ */
+el.tableBody.addEventListener("click", async (event) => {
+  const deleteBtn = event.target.closest('button[data-action="delete"]');
+  if (!deleteBtn) return;
+
+  const row = event.target.closest("tr[data-id]");
+  if (!row) return;
+
+  await deleteRow(Number(row.dataset.id));
+  await refresh();
+});
+
+/**
+ * Filtros reactivos
+ */
+el.yearFilter.addEventListener("change", () => {
+  state.year = el.yearFilter.value;
+  renderAll();
+});
+
+el.regionFilter.addEventListener("change", () => {
+  state.region = el.regionFilter.value;
+  renderAll();
+});
+
+el.metricSelect.addEventListener("change", () => {
+  state.metric = el.metricSelect.value;
+  renderCharts(); // Solo re-renderizar gráficas
+});
+
+el.searchInput.addEventListener("input", () => {
+  state.search = el.searchInput.value.trim();
+  renderAll();
+});
+
+// Inicializar aplicación
+refresh().catch(console.error);
 ```
 
-### 7.3 Dark mode
+### Estructura HTML del dashboard
 
-El dark mode se implementa con clases CSS y `localStorage`:
+```html
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NousCharts Lab · Librería de gráficas</title>
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <!-- Header -->
+      <section class="panel header">
+        <div>
+          <h1>NousCharts Lab</h1>
+          <p>
+            Librería personalizada de gráficas para paneles empresariales con
+            datos persistidos en IndexedDB.
+          </p>
+        </div>
+        <div class="actions">
+          <button id="addRowBtn">+ Añadir registro</button>
+          <button id="seedBtn" class="secondary">Cargar dataset demo</button>
+          <button id="resetBtn" class="secondary">Reset BD</button>
+        </div>
+      </section>
+
+      <!-- Controles -->
+      <section class="panel">
+        <div class="row row-4">
+          <label
+            >Año
+            <select id="yearFilter"></select>
+          </label>
+          <label
+            >Región
+            <select id="regionFilter"></select>
+          </label>
+          <label
+            >Métrica principal
+            <select id="metricSelect">
+              <option value="ventas">Ventas</option>
+              <option value="costes">Costes</option>
+              <option value="tickets">Tickets</option>
+              <option value="satisfaccion">Satisfacción</option>
+            </select>
+          </label>
+          <label
+            >Búsqueda rápida
+            <input id="searchInput" placeholder="Mes o región..." />
+          </label>
+        </div>
+        <div class="stats" id="statsBox"></div>
+      </section>
+
+      <!-- Grid de gráficas -->
+      <section class="grid-2">
+        <article class="panel chart-card">
+          <h2>Barras comparativas</h2>
+          <canvas id="barChart" width="560" height="280"></canvas>
+        </article>
+
+        <article class="panel chart-card">
+          <h2>Línea de evolución</h2>
+          <canvas id="lineChart" width="560" height="280"></canvas>
+        </article>
+
+        <article class="panel chart-card">
+          <h2>Área acumulada</h2>
+          <canvas id="areaChart" width="560" height="280"></canvas>
+        </article>
+
+        <article class="panel chart-card">
+          <h2>Donut por regiones</h2>
+          <canvas id="donutChart" width="560" height="280"></canvas>
+        </article>
+
+        <article class="panel chart-card">
+          <h2>Radar KPI mensual</h2>
+          <canvas id="radarChart" width="560" height="280"></canvas>
+        </article>
+
+        <article class="panel chart-card">
+          <h2>Heatmap ventas (mes x región)</h2>
+          <canvas id="heatmapChart" width="560" height="280"></canvas>
+        </article>
+      </section>
+
+      <!-- Tabla de datos -->
+      <section class="panel">
+        <h2>Dataset (persistencia IndexedDB)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Año</th>
+                <th>Región</th>
+                <th>Ventas</th>
+                <th>Costes</th>
+                <th>Tickets</th>
+                <th>Satisfacción</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="lib/nouscharts.js"></script>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
+```
+
+### Errores comunes y soluciones
+
+**Error 1:** No escalar valores correctamente.
 
 ```javascript
-function applyDark(dark) {
-  document.body.classList.toggle('dark', dark);
-  localStorage.setItem('nouscharts-dark', dark ? '1' : '0');
-  renderCharts();
-}
+// Incorrecto
+const barHeight = value;
 
-(function initDark() {
-  const stored = localStorage.getItem('nouscharts-dark');
-  const prefer = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const isDark = stored !== null ? stored === '1' : prefer;
-  document.body.classList.toggle('dark', isDark);
-})();
+// Correcto
+const { max } = getRange(values);
+const barHeight = (value / max) * availableHeight;
 ```
 
-En CSS, las custom properties se redefinen bajo `body.dark`:
+**Error 2:** No cerrar paths en Canvas.
 
-```css
-:root {
-  --bg: #f7f7f5;
-  --panel: #ffffff;
-  --text: #1e1e1e;
-  --muted: #6b7280;
-  --border: #e4e7eb;
-  /* ... */
-}
+```javascript
+// Incorrecto
+ctx.beginPath();
+ctx.arc(x, y, r, 0, Math.PI * 2);
+ctx.fill();
 
-body.dark {
-  --bg:#1a1a1a; --panel:#242424; --text:#e4e4e4; --muted:#9ca3af;
-  --border:#333; --border-strong:#444; --chart-bg:#26262b;
-}
+// Correcto
+ctx.beginPath();
+ctx.arc(x, y, r, 0, Math.PI * 2);
+ctx.closePath(); // Cerrar antes de fill
+ctx.fill();
 ```
 
-Además, las gráficas reciben colores adaptativos mediante `getChartColors()`:
+**Error 3:** No usar save/restore con estilos.
+
+```javascript
+// Incorrecto
+ctx.fillStyle = "#ff0000";
+ctx.fillRect(0, 0, 100, 100);
+// El fillStyle persiste para operaciones posteriores
+
+// Correcto
+ctx.save();
+ctx.fillStyle = "#ff0000";
+ctx.fillRect(0, 0, 100, 100);
+ctx.restore(); // Restaurar estado anterior
+```
+
+---
+
+## 4. Conclusión breve (25%)
+
+### Resumen de puntos clave
+
+Este proyecto de librería de visualización de datos demuestra:
+
+1. **Canvas API avanzado:** Renderizado de primitivas geométricas, textos, gradientes y transformaciones
+2. **Algoritmos de visualización:** Escalado proporcional, layouts circulares, distribución angular
+3. **Arquitectura modular:** Separación entre capa de renderizado, lógica de negocio y persistencia
+4. **Agregación de datos:** Transformaciones map/reduce para agrupar y sumarizar información
+5. **Dashboard reactivo:** Sincronización automática entre filtros, gráficas y tabla de datos
+6. **Persistencia empresarial:** IndexedDB con índices para consultas eficientes
+
+### Enlace con contenidos de la unidad
+
+Este proyecto integra conceptos del módulo:
+
+- **Canvas API (Unidad 3):** Renderizado 2D con paths, fills, strokes y transformaciones
+- **Visualización de datos (Unidad 5):** Implementación de múltiples tipos de gráficas
+- **IndexedDB (Unidad 4):** Persistencia estructurada con object stores e índices
+- **Eventos y DOM (Unidad 1):** Gestión de formularios, filtros y acciones de usuario
+- **Arquitectura de software:** Separación de responsabilidades en capas independientes
+
+### Comparación con librerías comerciales
+
+| Característica       | NousCharts (personalizada)        | Chart.js            | D3.js      |
+| -------------------- | --------------------------------- | ------------------- | ---------- |
+| Tamaño               | ~310 líneas (~8 KB)               | ~200 KB minificado  | ~500 KB    |
+| Dependencias         | Ninguna                           | Ninguna             | Ninguna    |
+| Curva de aprendizaje | Alta (implementar todo)           | Baja                | Muy alta   |
+| Personalización      | Total                             | Limitada a opciones | Total      |
+| Rendimiento          | Optimizado para casos específicos | Bueno               | Variable   |
+| Tipos de gráficas    | 6 básicas                         | 8+ con plugins      | Ilimitadas |
+
+**Ventajas de implementación propia:**
+
+- Comprensión profunda de algoritmos de visualización
+- Control total sobre renderizado y estilos
+- Sin overhead de funcionalidades no utilizadas
+- Aprendizaje de geometría y matemáticas aplicadas
+
+**Cuándo usar librerías externas:**
+
+- Proyectos con plazos ajustados
+- Necesidad de tipos de gráficas complejas (sankey, treemap, chord)
+- Interactividad avanzada (zoom, pan, tooltips dinámicos)
+- Actualizaciones animadas en tiempo real
+
+### Aplicaciones en el mundo real
+
+La visualización de datos es crítica en:
+
+- **Business Intelligence:** Dashboards ejecutivos con KPIs y métricas
+- **Análisis financiero:** Gráficas de evolución bursátil y rentabilidad
+- **Ciencia de datos:** Exploración visual de datasets para ML
+- **IoT y telemetría:** Monitorización en tiempo real de sensores
+- **Salud y bienestar:** Tracking de métricas personales (peso, pasos, calorías)
+
+### Futuras mejoras
+
+Posibles extensiones del proyecto:
+
+- **Interactividad:** Tooltips al hover, zoom, pan, click en elementos
+- **Animaciones:** Transiciones suaves entre estados de datos
+- **Más tipos de gráficas:** Scatter plot, bubble chart, sankey, treemap
+- **Exportación:** Guardar gráficas como PNG/SVG/PDF
+- **Responsive:** Adaptación automática a diferentes tamaños de viewport
+- **Temas:** Sistema de colores configurable (claro, oscuro, personalizado)
+- **Accesibilidad:** Descripciones ARIA, navegación por teclado
+
+---
+
+## Anexo — Mejoras UI/UX aplicadas (v2)
+
+A continuación se documentan las mejoras implementadas sobre la versión original del proyecto, orientadas a mejorar la experiencia de usuario, la legibilidad visual y la funcionalidad de la aplicación.
+
+### A.1 Navegación por pestañas
+
+Se ha reorganizado la interfaz en **2 pestañas** para separar visualización de datos crudos:
+
+| Pestaña       | Contenido                                                |
+| ------------- | -------------------------------------------------------- |
+| **Dashboard** | Filtros, 6 gráficas y KPIs en tiempo real                |
+| **Dataset**   | Tabla completa con CRUD, botones de seed, import y reset |
+
+Esto reduce el scroll en pantalla y ofrece un flujo más profesional tipo BI dashboard.
+
+### A.2 Sistema de KPIs con colores semánticos
+
+Se reemplaza el `statsBox` inline por una **barra de 4 KPIs** con bordes laterales coloreados:
+
+| KPI       | Color    | Descripción                         |
+| --------- | -------- | ----------------------------------- |
+| Registros | Azul     | Total de registros filtrados        |
+| Ventas    | Verde    | Suma de ventas con formato es-ES    |
+| Costes    | Ámbar    | Suma de costes con formato es-ES    |
+| Margen    | Dinámico | Verde si positivo, rojo si negativo |
+
+El KPI de margen cambia dinámicamente su color según el resultado sea positivo o negativo.
+
+### A.3 Modo oscuro persistente
+
+Se implementa un **toggle de modo oscuro** con persistencia en `localStorage`:
+
+```javascript
+document.body.classList.toggle("dark");
+localStorage.setItem("nouscharts-dark", isDark ? "1" : "0");
+```
+
+Las gráficas se re-renderizan automáticamente con los colores apropiados para el tema activo, pasando `bg`, `color` y `gridColor` adaptados.
+
+### A.4 Colores adaptativos en gráficas
+
+Las 6 gráficas Canvas ahora reciben **colores dinámicos** según el tema:
 
 ```javascript
 function getChartColors() {
-  const d = document.body.classList.contains('dark');
+  const isDark = document.body.classList.contains("dark");
   return {
-    bg:         d ? '#26262b' : '#ffffff',
-    color:      d ? '#a1a1aa' : '#4b5563',
-    lineColor:  d ? '#71717a' : '#374151',
-    gridColor:  d ? '#3a3a3f' : '#eef0f3',
-    axisColor:  d ? '#4a4a50' : '#d9dde2',
-    labelColor: d ? '#71717a' : '#6b7280',
-    textColor:  d ? '#d4d4d8' : '#374151',
-    // ...más colores...
+    bg:        isDark ? "#26262b" : "#ffffff",
+    color:     isDark ? "#a1a1aa" : "#4b5563",
+    lineColor: isDark ? "#71717a" : "#374151",
+    ...
   };
 }
 ```
 
-### 7.4 Diseño responsivo
+Esto garantiza que todas las gráficas sean legibles tanto en modo claro como oscuro.
 
-El CSS utiliza CSS Grid con breakpoints para adaptarse a pantallas pequeñas:
+### A.5 Badges de margen en tabla
 
-```css
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
+Cada fila de la tabla ahora muestra una **columna de margen** con badge coloreado:
 
-@media (max-width: 1050px) {
-  .grid-2 { grid-template-columns: 1fr; }
-  .row-4  { grid-template-columns: 1fr 1fr; }
-}
+| Margen   | Clase             | Visual                   |
+| -------- | ----------------- | ------------------------ |
+| Positivo | `.badge-positive` | Fondo verde, texto verde |
+| Negativo | `.badge-negative` | Fondo rojo, texto rojo   |
 
-@media (max-width: 700px) {
-  .row-4, .row-3 { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .header { flex-direction: column; align-items: flex-start; }
-}
-```
+Esto permite identificar de un vistazo qué registros son rentables y cuáles no.
 
----
+### A.6 Notificaciones toast
 
-## 8. Mejoras v2 Implementadas
+Se implementa un **sistema de toasts** con 4 tonos:
 
-### A. Navegación por pestañas
+| Tono    | Icono | Uso                              |
+| ------- | ----- | -------------------------------- |
+| success | ✓     | Registro añadido, exportación OK |
+| error   | ✗     | Errores de importación           |
+| info    | ℹ     | Carga de datos de ejemplo        |
+| warning | ⚠     | Sin datos para exportar          |
 
-Se divide la interfaz en dos pestañas (*Dashboard* y *Dataset*) para separar la visualización de datos de la gestión del dataset. Se usa `display: contents` para no romper el grid padre:
+Las notificaciones se apilan en la esquina inferior derecha y desaparecen tras 3.5 segundos.
 
-```css
-.tab-content { display: none; }
-.tab-content.active { display: contents; }
-```
+### A.7 Diálogos de confirmación personalizados
 
-### B. Modo oscuro con CSS Custom Properties + localStorage
-
-El modo oscuro se persiste entre sesiones con `localStorage`. Si no existe preferencia guardada, se respeta `prefers-color-scheme`. Los canvas se redibujan al cambiar de tema, recibiendo colores adaptativos desde un mapeo centralizado (`getChartColors`).
-
-### C. Colores KPI semánticos
-
-Cada KPI tiene un borde izquierdo de 3px coloreado para transmitir significado visual inmediato:
-
-```css
-.kpi.kpi-blue     { border-left-color: var(--blue); }
-.kpi.kpi-green    { border-left-color: var(--green); }
-.kpi.kpi-amber    { border-left-color: var(--amber); }
-.kpi.kpi-positive { border-left-color: var(--green); }
-.kpi.kpi-negative { border-left-color: var(--red); }
-```
-
-### D. Badges de margen en la tabla
-
-Cada fila de la tabla muestra el margen (ventas – costes) con un badge coloreado:
+Se sustituye el `confirm()` nativo por **diálogos overlay estilizados** con Promise:
 
 ```javascript
-const m = r.ventas - r.costes;
-const cls = m >= 0 ? 'badge-positive' : 'badge-negative';
-return `<span class="badge ${cls}">${fmt(m)}</span>`;
+const ok = await nousConfirm(
+  "Reset base de datos",
+  "¿Vaciar todos los registros?",
+);
+if (!ok) return;
 ```
 
-```css
-.badge-positive {
-  background: color-mix(in srgb, var(--green) 12%, transparent);
-  color: var(--green);
-}
-.badge-negative {
-  background: color-mix(in srgb, var(--red) 12%, transparent);
-  color: var(--red);
-}
-```
+Se aplica tanto al reset de la BD como a la eliminación individual de registros.
 
-Se emplea `color-mix()` de CSS para generar fondos semitransparentes sin valores rgba fijos.
+### A.8 Confirmación al eliminar registro
 
-### E. Sistema de notificaciones toast
+En la versión original, eliminar un registro de la tabla **no pedía confirmación**. Ahora se muestra un diálogo personalizado antes de proceder, evitando borrados accidentales.
 
-Notificaciones temporales (3.5 s) con 4 tonos (success, error, info, warning):
+### A.9 Exportación de datos (JSON)
+
+Nuevo botón **⬇ Exportar** que descarga todos los registros en formato JSON:
 
 ```javascript
-function toast(msg, tone = 'info') {
-  const div = document.createElement('div');
-  div.className = `toast toast-${tone}`;
-  const icons = { success: '\u2713', error: '\u2717', info: '\u2139', warning: '\u26A0' };
-  div.textContent = `${icons[tone] || ''} ${msg}`;
-  el.toastContainer.appendChild(div);
-  setTimeout(() => div.remove(), 3500);
-}
-```
-
-Los toasts aparecen con animación `slideUp` y se apilan en la esquina inferior derecha:
-
-```css
-.toast-container {
-  position: fixed; bottom: 20px; right: 20px;
-  display: flex; flex-direction: column-reverse; gap: 8px; z-index: 9999;
-}
-.toast {
-  padding: 10px 16px; border-radius: 10px; font-size: .88rem;
-  color: #fff; animation: slideUp .25s ease; min-width: 240px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.15);
-}
-```
-
-### F. Diálogos de confirmación personalizados (Promise)
-
-Se sustituye el `window.confirm()` nativo por un diálogo modal personalizado que devuelve una `Promise<boolean>`, integrándose con `async/await` de forma natural. El diálogo utiliza `<dialog>.showModal()` con backdrop blur:
-
-```css
-.dialog::backdrop {
-  background: rgba(15,23,42,.35);
-  backdrop-filter: blur(4px);
-}
-```
-
-### G. Exportación e importación JSON
-
-- **Exportar:** serializa el dataset completo como JSON y lo descarga con `Blob` + `URL.createObjectURL()`.
-- **Importar:** lee un fichero `.json` con `file.text()`, valida la estructura y añade cada registro válido a IndexedDB.
-
-```javascript
-el.exportBtn.addEventListener('click', async () => {
-  const data = await getAllRows();
-  if (!data.length) { toast('Sin datos para exportar', 'warning'); return; }
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `nouscharts_${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('Datos exportados como JSON', 'success');
+const blob = new Blob([JSON.stringify(data, null, 2)], {
+  type: "application/json",
 });
+a.download = `nouscharts_${date}.json`;
 ```
 
-### H. Auto-seed en primera ejecución
+Esto cubre la mejora futura "Exportación" mencionada en la sección 4.
 
-Al arrancar la aplicación, si IndexedDB está vacío se cargan automáticamente 48 registros de ejemplo:
+### A.10 Importación de datos (JSON)
 
-```javascript
-(async function boot() {
-  state.rows = await getAllRows();
-  if (!state.rows.length) {
-    for (const row of seedData()) await addRow(row);
-    state.rows = await getAllRows();
-    toast('Datos de ejemplo cargados automaticamente', 'info');
-  }
-  state.rows.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  rebuildFilters();
-  renderAll();
-})();
-```
+Nuevo botón **⬆ Importar** que permite cargar registros desde un archivo JSON externo, con validación de formato y feedback por toast.
 
-### I. Rediseño del diálogo con header / body / footer
+### A.11 Seed automático en primera ejecución
 
-Los diálogos siguen una estructura clara de tres secciones para mantener consistencia visual:
+En la primera ejecución (IndexedDB vacío), se cargan automáticamente **48 registros** (12 meses × 4 regiones) para que el dashboard muestre datos inmediatamente, sin necesidad de pulsar "Cargar dataset demo".
 
-```css
-.dialog-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 16px; border-bottom: 1px solid var(--border);
-}
-.dialog-body { padding: 16px; }
-.dialog-footer {
-  padding: 12px 16px; border-top: 1px solid var(--border);
-  display: flex; gap: 8px;
-}
-```
+### A.12 Dialog rediseñado
 
-### J. Formato numérico con locale `es-ES`
+El formulario de nuevo registro usa `<dialog>` nativo con:
 
-Todos los valores numéricos se formatean con `toLocaleString('es-ES')`, usando el punto como separador de miles:
+- `::backdrop` con `backdrop-filter: blur(4px)` para foco visual
+- Layout estructurado con `dialog-header`, `dialog-body` y `dialog-footer`
+- Botón de cierre (✕) en la esquina superior derecha
+- Labels en uppercase con tracking para jerarquía visual
+- Animación `slideUp` al abrir
 
-```javascript
-const fmt = v => Number(v).toLocaleString('es-ES');
-// 1234 → "1.234"
-```
+### A.13 Formato numérico localizado
 
-### K. Mejoras CSS: focus rings, hover, animaciones, backdrop-filter
+Los KPIs de ventas, costes y margen usan `toLocaleString("es-ES")` para mostrar los números con separadores de miles correctos para el locale español.
 
-- **Focus visible:** anillo azul con `box-shadow` en inputs y selects, mejorando la navegabilidad por teclado.
-- **Hover en filas:** sutil cambio de fondo con `color-mix()` del color de acento.
-- **Animaciones:** `fadeIn` para la shell principal; `slideUp` para los toasts.
-- **Backdrop filter:** `blur(4px)` en el overlay de los diálogos.
+### A.14 Mejoras CSS generales
 
-```css
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-
-tr:hover td {
-  background: color-mix(in srgb, var(--accent) 4%, var(--panel));
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-```
-
----
-
-## 9. Patrones de Error y Soluciones
-
-### 9.1 Canvas se ve borroso o pixelado
-
-**Problema:** al escalar el canvas con CSS (`width: 100%`) sin fijar sus atributos `width`/`height`, el contenido se interpola y aparece borroso.
-
-**Solución:** definir los atributos `width` y `height` directamente en el elemento `<canvas>` para que coincidan con la resolución de dibujo. El CSS solo controla el tamaño de presentación:
-
-```html
-<canvas id="barChart" width="560" height="280"></canvas>
-```
-
-### 9.2 IndexedDB no crea los índices
-
-**Problema:** al modificar los índices del object store sin incrementar la versión de la BD, el evento `onupgradeneeded` no se ejecuta.
-
-**Solución:** incrementar `DB_VERSION` cada vez que se modifica el esquema. En nuestro caso se usa la versión 1 con la protección `if (!db.objectStoreNames.contains(STORE))` para seguridad.
-
-### 9.3 Los gráficos no reflejan el dark mode al cargar
-
-**Problema:** el dark mode se aplica con `classList.toggle` en la IIFE `initDark()`, pero las gráficas se dibujan después en `boot()` y el estado oscuro ya está reflejado en el DOM. Sin embargo, si `renderCharts()` se llamara antes de que el body reciba la clase `dark`, los colores serían incorrectos.
-
-**Solución:** asegurar que `initDark()` se ejecute síncronamente (IIFE al inicio del script) **antes** de la función `boot()` que renderiza las gráficas.
-
-### 9.4 Importación de JSON con IDs duplicados
-
-**Problema:** al importar un fichero exportado, los registros traen el campo `id` de la BD original. Si se insertan directamente, el `autoIncrement` de IndexedDB entra en conflicto.
-
-**Solución:** se elimina el `id` antes de insertar con destructuring:
-
-```javascript
-const { id, ...clean } = row;
-await addRow(clean);
-```
-
----
-
-## 10. Conclusiones y Aprendizajes
-
-### 10.1 Logros técnicos
-
-- Se ha construido una **librería de visualización completa** con 6 tipos de gráficas, sin dependencias externas, demostrando el poder de Canvas API para renderizado 2D.
-- La librería es **reutilizable y desacoplada**: cualquier aplicación que incluya `nouscharts.js` obtiene acceso a las funciones de dibujo a través de `window.NousCharts`.
-- El sistema de **opciones de color** permite adaptar las gráficas a cualquier tema visual, no solo light/dark.
-
-### 10.2 Aprendizajes sobre Canvas API
-
-- El dominio de `save()` / `restore()` del contexto es esencial para evitar fugas de estado entre funciones.
-- Los gradientes (`createLinearGradient`) permiten crear efectos visuales sofisticados con pocas líneas.
-- El cálculo trigonométrico (seno/coseno) es fundamental para gráficas polares (radar, donut).
-- La modulación de canal alfa sobre un color base RGB es una técnica eficiente para heatmaps continuos.
-
-### 10.3 Aprendizajes sobre persistencia
-
-- IndexedDB ofrece un sistema de almacenamiento potente pero con una API basada en eventos que requiere ser envuelta en Promises para un uso ergonómico con `async/await`.
-- El patrón de acción genérica (`dbAction`) elimina la duplicación de código de transacciones.
-- La generación de datos semilla (*auto-seed*) mejora radicalmente la experiencia de primer uso.
-
-### 10.4 Aprendizajes sobre diseño de interfaces
-
-- Las **CSS Custom Properties** son la clave para implementar temas visuales de forma mantenible: un solo cambio de clase (`body.dark`) repinta toda la interfaz.
-- `color-mix()` es una función CSS moderna muy útil para generar variantes de color sin duplicar valores.
-- El elemento `<dialog>` nativo simplifica enormemente la creación de modales accesibles, con soporte de `::backdrop` y `showModal()`.
-- Las **notificaciones toast** y los **diálogos de confirmación personalizados** mejoran la experiencia de usuario respecto a los `alert()` / `confirm()` nativos del navegador.
-
-### 10.5 Valoración global
-
-NousCharts Lab demuestra que es posible construir herramientas de visualización de datos completas y profesionales con tecnologías nativas del navegador (Canvas API, IndexedDB, CSS Custom Properties, `<dialog>`), sin necesidad de frameworks pesados. El proyecto ha sido una oportunidad excelente para profundizar en el rendering 2D imperativo, la persistencia client-side y el diseño de interfaces modernas con vanilla JavaScript.
-
----
-
-_Documento generado para la actividad de Desarrollo de Interfaces — DAM2 2025/26._
+- **Variables CSS** ampliadas con colores semánticos (`--blue`, `--green`, `--red`, `--amber`, `--violet`)
+- **Animaciones**: `fadeIn`, `slideUp` para feedback visual suave
+- **Responsive** con breakpoints a 1050px y 700px
+- **Row hover** en tabla con highlight azul sutil
+- **Focus states** con ring azul en inputs y selects
+- **Sombras y transiciones** en hover para paneles y KPIs
+- **Header** rediseñado con iconos de acción agrupados
+- **Footer** con información del curso
